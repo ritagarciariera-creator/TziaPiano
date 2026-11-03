@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090a10"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="TZIA Piano"><link rel="manifest" href="manifest.json">
+<title>TZIA · Piano de Tonalidades</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#090a10;color:#f4f4f6;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:1200px;margin:auto;padding:18px}.hero{padding:12px 0 18px}.tag{letter-spacing:.18em;text-transform:uppercase;color:#aaa;font-size:12px}
+h1{font-size:clamp(28px,6vw,56px);margin:5px 0}.sub{color:#aaa}.panel{background:#12141d;border:1px solid #292c38;border-radius:22px;padding:16px;margin:12px 0}
+.keys{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.key{padding:13px 5px;border-radius:14px;border:1px solid #343744;background:#1a1c26;color:white;font-weight:700}
+.key small{display:block;color:#999;font-weight:500;margin-top:3px}.key.active{background:#f2f2f2;color:#111;border-color:#fff}.key.active small{color:#555}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}.info{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:#191b25;border-radius:15px;padding:12px}.label{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.12em}.value{font-size:18px;font-weight:700;margin-top:4px}
+.notes{font-size:20px;letter-spacing:.04em;line-height:1.6}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{border:1px solid #363947;background:#20222c;padding:8px 10px;border-radius:10px}
+button{font:inherit;cursor:pointer}.controls{display:flex;flex-wrap:wrap;gap:8px}.ctrl{border:1px solid #383b49;background:#1b1d27;color:#fff;border-radius:12px;padding:10px 13px}.ctrl.primary{background:#fff;color:#111}
+.pianoWrap{overflow-x:auto;padding-bottom:8px}.piano{position:relative;height:190px;min-width:900px;background:#05060a;border-radius:15px;padding:0 1px}
+.white{position:relative;display:inline-block;width:6.6667%;height:190px;background:linear-gradient(#fff,#d8d8dc);border:1px solid #555;border-radius:0 0 7px 7px;vertical-align:top}
+.white .nm{position:absolute;bottom:8px;width:100%;text-align:center;color:#555;font-size:12px}.white.on{background:#b9a7ff}.white.root{background:#fff09b}
+.black{position:absolute;z-index:3;top:0;width:4.2%;height:115px;background:linear-gradient(#25262b,#050507);border-radius:0 0 6px 6px;border:1px solid #000;transform:translateX(-50%)}.black.on{background:#8e72ff}.black.root{background:#ffd84d}
+.legend{display:flex;gap:15px;color:#aaa;font-size:12px;margin-top:9px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#8e72ff;margin-right:5px}.dot.r{background:#ffd84d}
+.circle{display:grid;grid-template-columns:repeat(12,1fr);gap:6px}.fifth{padding:10px 3px;text-align:center;border-radius:50%;border:1px solid #343744}.fifth b{display:block}.fifth small{color:#999}
+@media(max-width:750px){.keys{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:1fr}.circle{grid-template-columns:repeat(6,1fr)}.piano{min-width:850px}}
+</style></head><body><div class="wrap">
+<div class="hero"><div class="tag">TZIA · MUSIC LAB · APP</div><h1>Piano de tonalidades</h1><div class="sub">Mayores · relativas menores · paralelas · escalas · acordes · círculo de quintas</div></div>
+<div class="panel"><div class="label">Elige una tonalidad</div><div class="keys" id="keys"></div></div>
+<div class="grid"><div class="panel"><div class="label">Tonalidad seleccionada</div><h2 id="title"></h2><div class="info" id="info"></div>
+<div style="height:12px"></div><div class="label">Escala mayor</div><div class="notes" id="major"></div>
+<div class="label" style="margin-top:12px">Escala menor natural · relativa</div><div class="notes" id="minor"></div></div>
+<div class="panel"><div class="label">Escuchar</div><div class="controls"><button class="ctrl primary" onclick="playScale(false)">▶ Escala mayor</button><button class="ctrl" onclick="playScale(true)">▶ Menor</button><button class="ctrl" onclick="playChordSeq()">▶ Acordes I–VII</button></div>
+<div style="height:14px"></div><div class="label">Acordes diatónicos mayores</div><div class="chips" id="triads"></div>
+<div class="label" style="margin-top:12px">Acordes de la relativa menor</div><div class="chips" id="minorTriads"></div></div></div>
+<div class="panel"><div class="label">Piano · notas de la escala</div><div class="pianoWrap"><div class="piano" id="piano"></div></div><div class="legend"><span><i class="dot r"></i>Tónica</span><span><i class="dot"></i>Notas de la escala</span></div></div>
+<div class="panel"><div class="label">Círculo de quintas · mayores</div><div class="circle" id="circle"></div></div>
+</div>
+<script>
+const DATA={"C": {"notes": ["C", "D", "E", "F", "G", "A", "B"], "minor": ["A", "B", "C", "D", "E", "F", "G"], "triads": ["C", "Dm", "Em", "F", "G", "Am", "Bdim"], "minorTriads": ["Am", "Bdim", "C", "Dm", "Em", "F", "G"]}, "G": {"notes": ["G", "A", "B", "C", "D", "E", "F♯"], "minor": ["E", "F♯", "G", "A", "B", "C", "D"], "triads": ["G", "Am", "Bm", "C", "D", "Em", "F♯dim"], "minorTriads": ["Em", "F♯dim", "G", "Am", "Bm", "C", "D"]}, "D": {"notes": ["D", "E", "F♯", "G", "A", "B", "C♯"], "minor": ["B", "C♯", "D", "E", "F♯", "G", "A"], "triads": ["D", "Em", "F♯m", "G", "A", "Bm", "C♯dim"], "minorTriads": ["Bm", "C♯dim", "D", "Em", "F♯m", "G", "A"]}, "A": {"notes": ["A", "B", "C♯", "D", "E", "F♯", "G♯"], "minor": ["F♯", "G♯", "A", "B", "C♯", "D", "E"], "triads": ["A", "Bm", "C♯m", "D", "E", "F♯m", "G♯dim"], "minorTriads": ["F♯m", "G♯dim", "A", "Bm", "C♯m", "D", "E"]}, "E": {"notes": ["E", "F♯", "G♯", "A", "B", "C♯", "D♯"], "minor": ["C♯", "D♯", "E", "F♯", "G♯", "A", "B"], "triads": ["E", "F♯m", "G♯m", "A", "B", "C♯m", "D♯dim"], "minorTriads": ["C♯m", "D♯dim", "E", "F♯m", "G♯m", "A", "B"]}, "B": {"notes": ["B", "C♯", "D♯", "E", "F♯", "G♯", "A♯"], "minor": ["G♯", "A♯", "B", "C♯", "D♯", "E", "F♯"], "triads": ["B", "C♯m", "D♯m", "E", "F♯", "G♯m", "A♯dim"], "minorTriads": ["G♯m", "A♯dim", "B", "C♯m", "D♯m", "E", "F♯"]}, "F♯": {"notes": ["F♯", "G♯", "A♯", "B", "C♯", "D♯", "E♯"], "minor": ["D♯", "E♯", "F♯", "G♯", "A♯", "B", "C♯"], "triads": ["F♯", "G♯m", "A♯m", "B", "C♯", "D♯m", "E♯dim"], "minorTriads": ["D♯m", "E♯dim", "F♯", "G♯m", "A♯m", "B", "C♯"]}, "D♭": {"notes": ["D♭", "E♭", "F", "G♭", "A♭", "B♭", "C"], "minor": ["B♭", "C", "D♭", "E♭", "F", "G♭", "A♭"], "triads": ["D♭", "E♭m", "Fm", "G♭", "A♭", "B♭m", "Cdim"], "minorTriads": ["B♭m", "Cdim", "D♭", "E♭m", "Fm", "G♭", "A♭"]}, "A♭": {"notes": ["A♭", "B♭", "C", "D♭", "E♭", "F", "G"], "minor": ["F", "G", "A♭", "B♭", "C", "D♭", "E♭"], "triads": ["A♭", "B♭m", "Cm", "D♭", "E♭", "Fm", "Gdim"], "minorTriads": ["Fm", "Gdim", "A♭", "B♭m", "Cm", "D♭", "E♭"]}, "E♭": {"notes": ["E♭", "F", "G", "A♭", "B♭", "C", "D"], "minor": ["C", "D", "E♭", "F", "G", "A♭", "B♭"], "triads": ["E♭", "Fm", "Gm", "A♭", "B♭", "Cm", "Ddim"], "minorTriads": ["Cm", "Ddim", "E♭", "Fm", "Gm", "A♭", "B♭"]}, "B♭": {"notes": ["B♭", "C", "D", "E♭", "F", "G", "A"], "minor": ["G", "A", "B♭", "C", "D", "E♭", "F"], "triads": ["B♭", "Cm", "Dm", "E♭", "F", "Gm", "Adim"], "minorTriads": ["Gm", "Adim", "B♭", "Cm", "Dm", "E♭", "F"]}, "F": {"notes": ["F", "G", "A", "B♭", "C", "D", "E"], "minor": ["D", "E", "F", "G", "A", "B♭", "C"], "triads": ["F", "Gm", "Am", "B♭", "C", "Dm", "Edim"], "minorTriads": ["Dm", "Edim", "F", "Gm", "Am", "B♭", "C"]}};
+const KEYS=[["C", "Am", "C minor", "—"], ["G", "Em", "G minor", "1 ♯"], ["D", "Bm", "D minor", "2 ♯"], ["A", "F♯m", "A minor", "3 ♯"], ["E", "C♯m", "E minor", "4 ♯"], ["B", "G♯m", "B minor", "5 ♯"], ["F♯", "D♯m", "F♯ minor", "6 ♯"], ["D♭", "B♭m", "D♭ minor", "5 ♭"], ["A♭", "Fm", "A♭ minor", "4 ♭"], ["E♭", "Cm", "E♭ minor", "3 ♭"], ["B♭", "Gm", "B♭ minor", "2 ♭"], ["F", "Dm", "F minor", "1 ♭"]];
+let current="C", audioCtx=null;
+const pc={"C":0,"C♯":1,"D♭":1,"D":2,"D♯":3,"E♭":3,"E":4,"F":5,"F♯":6,"G♭":6,"G":7,"G♯":8,"A♭":8,"A":9,"A♯":10,"B♭":10,"B":11,"C♭":11,"E♯":5};
+const white=["C","D","E","F","G","A","B","C","D","E","F","G","A","B","C"];
+const black=[["C♯",6.67],["D♯",13.33],["F♯",26.67],["G♯",33.33],["A♯",40],["C♯",53.33],["D♯",60],["F♯",73.33],["G♯",80],["A♯",86.67]];
+function renderKeys(){keys.innerHTML=KEYS.map(k=>`<button class="key ${k[0]==current?'active':''}" onclick="selectKey('${k[0]}')">${k[0]}<small>→ ${k[1]}</small></button>`).join("")}
+function selectKey(k){current=k;render();renderKeys()}
+function render(){
+ const d=DATA[current], meta=KEYS.find(x=>x[0]==current);
+ title.textContent=current+" mayor · "+meta[1]+" relativa";
+ info.innerHTML=`<div class="card"><div class="label">Relativa menor</div><div class="value">${meta[1]}</div></div><div class="card"><div class="label">Paralela menor</div><div class="value">${meta[2]}</div></div><div class="card"><div class="label">Armadura</div><div class="value">${meta[3]}</div></div><div class="card"><div class="label">Grados</div><div class="value">I · ii · iii · IV · V · vi · vii°</div></div>`;
+ major.textContent=d.notes.join(" · "); minor.textContent=d.minor.join(" · ");
+ triads.innerHTML=d.triads.map((x,i)=>`<button class="chip" onclick="playChord('${x}')">${["I","ii","iii","IV","V","vi","vii°"][i]} · ${x}</button>`).join("");
+ minorTriads.innerHTML=d.minorTriads.map((x,i)=>`<button class="chip" onclick="playChord('${x}')">${["i","ii°","III","iv","v","VI","VII"][i]} · ${x}</button>`).join("");
+ drawPiano(d.notes,current); drawCircle();
+}
+function drawPiano(notes,root){
+ piano.innerHTML="";
+ white.forEach((n,i)=>{let el=document.createElement("div");el.className="white";let nn=n;if(notes.includes(nn)||pc[nn]==pc[root])el.classList.add("on");if(pc[nn]==pc[root])el.classList.add("root");el.innerHTML=`<span class="nm">${n}</span>`;el.onclick=()=>tone(pc[nn]+60);piano.appendChild(el)});
+ black.forEach(([n,pos])=>{let el=document.createElement("div");el.className="black";if(notes.some(x=>pc[x]==pc[n]))el.classList.add("on");if(pc[root]==pc[n])el.classList.add("root");el.style.left=pos+"%";el.onclick=()=>tone(pc[n]+61);piano.appendChild(el)});
+}
+function drawCircle(){let order=["C","G","D","A","E","B","F♯","D♭","A♭","E♭","B♭","F"];circle.innerHTML=order.map((k,i)=>`<div class="fifth" style="${k==current?'outline:2px solid white':''}"><b>${k}</b><small>${KEYS[i][1]}</small></div>`).join("")}
+function ensure(){if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume()}
+function tone(midi,dur=.55,when=0){ensure();let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.value=440*Math.pow(2,(midi-69)/12);g.gain.setValueAtTime(.0001,audioCtx.currentTime+when);g.gain.exponentialRampToValueAtTime(.18,audioCtx.currentTime+when+.015);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+when+dur);o.connect(g).connect(audioCtx.destination);o.start(audioCtx.currentTime+when);o.stop(audioCtx.currentTime+when+dur+.03)}
+function playScale(minor=false){let arr=(minor?DATA[current].minor:DATA[current].notes).map(x=>pc[x]+60);arr.push(arr[0]+12);arr.forEach((m,i)=>tone(m,.42,i*.28))}
+function chordNotes(name){let root=name.replace("dim","").replace("m","");let r=pc[root]+60;let minor=name.includes("m")&&!name.includes("dim"),dim=name.includes("dim");return [r,r+(minor?3:dim?3:4),r+(dim?6:7)]}
+function playChord(name){chordNotes(name).forEach(m=>tone(m,.8));}
+function playChordSeq(){DATA[current].triads.forEach((c,i)=>setTimeout(()=>playChord(c),i*650))}
+renderKeys();render();
+</script><div id="installTip" style="position:fixed;left:12px;right:12px;bottom:12px;background:#f4f4f6;color:#111;border-radius:18px;padding:13px 15px;box-shadow:0 12px 40px #0008;display:none;z-index:20;font-size:14px">
+      <b>📱 Guardarlo como app</b><br>En Safari: <b>Compartir → Añadir a pantalla de inicio</b>.
+      <button onclick="this.parentElement.style.display='none'" style="float:right;border:0;background:#ddd;border-radius:9px;padding:5px 9px">×</button>
+    </div>
+    <script>
+      if ("serviceWorker" in navigator && location.protocol !== "file:") {
+        navigator.serviceWorker.register("sw.js").catch(()=>{});
+      }
+      if (/iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.navigator.standalone) {
+        setTimeout(()=>{const x=document.getElementById("installTip"); if(x)x.style.display="block"},1200);
+      }
+    </script>
+</body></html>

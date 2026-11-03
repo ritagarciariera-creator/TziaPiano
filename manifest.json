@@ -1,0 +1,10 @@
+{
+  "name": "TZIA Piano · Tonalidades",
+  "short_name": "TZIA Piano",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090a10",
+  "theme_color": "#090a10",
+  "orientation": "landscape",
+  "description": "Piano interactivo de tonalidades, escalas y acordes para TZIA."
+}
